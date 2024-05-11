@@ -9,6 +9,10 @@ Quoting the [documentation](https://www.google.com/design/spec/components/steppe
 
 >Steppers display progress through a sequence by breaking it up into multiple logical and numbered steps.
 
+# Credits
+
+This is just an updated version of [Android Material Stepper](https://github.com/stepstone-tech/android-material-stepper) and applying some of the active pull requests in it. 
+Credits go completely to its creator and the people who have contributed with those pull requests.
 
 ## Supported features
   - color customisation of individual widgets inside of the stepper via View attributes or a style from a theme
