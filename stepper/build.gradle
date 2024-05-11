@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id 'maven-publish'
 }
 
 android {
@@ -27,6 +28,15 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+    lint {
+        abortOnError false
+    }
 }
 
 dependencies {
@@ -37,4 +47,26 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
+
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.leodan11'
+                artifactId = 'material-stepper'
+                version = '1.0.0'
+
+                pom {
+                    name = "Material Stepper"
+                    description = "This library allows to use Material steppers inside Android applications."
+                    url = "https://github.com/leodan11/material-stepper"
+                }
+
+            }
+        }
+    }
 }

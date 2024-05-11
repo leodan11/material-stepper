@@ -5,15 +5,21 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <fragment
+    <com.github.leodan11.stepper.StepperLayout
         android:id="@+id/nav_host_fragment_content_main"
-        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:defaultNavHost="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navGraph="@navigation/nav_graph" />
+        app:ms_activeStepColor="?attr/colorPrimary"
+        app:ms_backButtonColor="?attr/colorPrimary"
+        app:ms_bottomNavigationBackground="?attr/colorSurfaceContainer"
+        app:ms_completeButtonColor="?attr/colorPrimary"
+        app:ms_inactiveStepColor="?attr/colorOutline"
+        app:ms_nextButtonColor="?attr/colorPrimary"
+        app:ms_stepperType="dots"
+        app:ms_tabStepDividerWidth="138dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
