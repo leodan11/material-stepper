@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <public name="ms_back" type="string"/>
+    <public name="ms_next" type="string"/>
+    <public name="ms_complete" type="string" />
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ms_back">Atrás</string>
+    <string name="ms_next">Siguiente</string>
+    <string name="ms_complete">Completado</string>
+</resources>
