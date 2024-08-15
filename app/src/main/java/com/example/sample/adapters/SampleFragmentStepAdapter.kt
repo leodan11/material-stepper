@@ -13,10 +13,10 @@ class SampleFragmentStepAdapter(context: Context, fragmentManager: FragmentManag
     override fun getCount(): Int = 3
 
     override fun createStep(position: Int): Step {
-        when(position) {
-            0 -> return FirstFragment.newInstance()
-            1 -> return SecondFragment.newInstance()
-            2 -> return BlankFragment.newInstance()
+        return when(position) {
+            0 -> FirstFragment.newInstance()
+            1 -> SecondFragment.newInstance()
+            2 -> BlankFragment.newInstance()
             else -> throw IllegalArgumentException("Unsupported position: $position")
         }
     }

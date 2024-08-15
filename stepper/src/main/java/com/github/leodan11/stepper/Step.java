@@ -16,17 +16,17 @@ public interface Step {
      * @return the cause of the validation failure or <i>null</i> if step was validated successfully
      */
     @Nullable
-    VerificationError verifyStep();
+    default VerificationError verifyStep() { return null; }
 
     /**
      * Called when this step gets selected in the the stepper layout.
      */
-    void onSelected();
+    default void onSelected() { }
 
     /**
      * Called when the user clicked on the Next/Complete button and the step verification failed.
      * @param error the cause of the validation failure
      */
-    void onError(@NonNull VerificationError error);
+    default void onError(@NonNull VerificationError error) { }
 
 }

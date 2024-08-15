@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.sample.databinding.FragmentSecondBinding
 import com.github.leodan11.stepper.Step
-import com.github.leodan11.stepper.VerificationError
 import kotlin.random.Random
 
 /**
@@ -50,12 +49,6 @@ class SecondFragment : Fragment(), Step {
         super.onDestroyView()
         _binding = null
     }
-
-    override fun verifyStep(): VerificationError?  = null
-
-    override fun onSelected()  = Unit
-
-    override fun onError(error: VerificationError) = Unit
 
     companion object {
 

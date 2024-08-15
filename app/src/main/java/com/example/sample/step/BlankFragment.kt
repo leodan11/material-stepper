@@ -1,15 +1,14 @@
 package com.example.sample.step
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.example.sample.R
 import com.github.leodan11.stepper.Step
-import com.github.leodan11.stepper.VerificationError
 import kotlin.random.Random
 
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -47,12 +46,6 @@ class BlankFragment : Fragment(), Step {
         }
         return binding
     }
-
-    override fun verifyStep(): VerificationError?  = null
-
-    override fun onSelected()  = Unit
-
-    override fun onError(error: VerificationError) = Unit
 
     companion object {
         /**

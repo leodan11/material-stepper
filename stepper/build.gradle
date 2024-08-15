@@ -58,7 +58,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.leodan11'
                 artifactId = 'material-stepper'
-                version = '1.0.0'
+                version = '1.0.2'
 
                 pom {
                     name = "Material Stepper"
