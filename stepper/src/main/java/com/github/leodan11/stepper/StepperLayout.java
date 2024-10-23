@@ -6,7 +6,6 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -735,14 +734,6 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
 
         bindViews();
 
-        mPager.setOnTouchListener(new View.OnTouchListener() {
-
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                return true;
-            }
-        });
-
         initNavigation();
 
         mDottedProgressBar.setVisibility(GONE);
@@ -794,19 +785,19 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     }
 
     private void bindViews() {
-        mPager = (ViewPager) findViewById(R.id.ms_stepPager);
+        mPager = findViewById(R.id.ms_stepPager);
 
-        mBackNavigationButton = (Button) findViewById(R.id.ms_stepPrevButton);
-        mNextNavigationButton = (RightNavigationButton) findViewById(R.id.ms_stepNextButton);
-        mCompleteNavigationButton = (RightNavigationButton) findViewById(R.id.ms_stepCompleteButton);
+        mBackNavigationButton = findViewById(R.id.ms_stepPrevButton);
+        mNextNavigationButton = findViewById(R.id.ms_stepNextButton);
+        mCompleteNavigationButton = findViewById(R.id.ms_stepCompleteButton);
 
-        mStepNavigation = (ViewGroup) findViewById(R.id.ms_bottomNavigation);
+        mStepNavigation = findViewById(R.id.ms_bottomNavigation);
 
-        mDottedProgressBar = (DottedProgressBar) findViewById(R.id.ms_stepDottedProgressBar);
+        mDottedProgressBar = findViewById(R.id.ms_stepDottedProgressBar);
 
-        mProgressBar = (ColorableProgressBar) findViewById(R.id.ms_stepProgressBar);
+        mProgressBar = findViewById(R.id.ms_stepProgressBar);
 
-        mTabsContainer = (TabsContainer) findViewById(R.id.ms_stepTabsContainer);
+        mTabsContainer = findViewById(R.id.ms_stepTabsContainer);
     }
 
     private void extractValuesFromAttributes(AttributeSet attrs, @AttrRes int defStyleAttr) {
