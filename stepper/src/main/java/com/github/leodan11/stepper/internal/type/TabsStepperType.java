@@ -36,8 +36,8 @@ public class TabsStepperType extends AbstractStepperType {
         if (stepperLayout.isInEditMode()) {
             //noinspection ConstantConditions
             mTabsContainer.setSteps(Arrays.asList(
-                    new StepViewModel.Builder(null).setTitle("Step 1").create(),
-                    new StepViewModel.Builder(null).setTitle("Step 2").setSubtitle("Optional").create())
+                    new StepViewModel.Builder().setTitle("Step 1").create(),
+                    new StepViewModel.Builder().setTitle("Step 2").setSubtitle("Optional").create())
             );
             mTabsContainer.updateSteps(0, new SparseArray<>(), false);
             mTabsContainer.setVisibility(View.VISIBLE);

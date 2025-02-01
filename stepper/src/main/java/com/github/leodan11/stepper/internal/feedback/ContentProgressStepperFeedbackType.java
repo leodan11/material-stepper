@@ -19,7 +19,7 @@ public class ContentProgressStepperFeedbackType implements StepperFeedbackType {
     private final ProgressBar mPagerProgressBar;
 
     public ContentProgressStepperFeedbackType(@NonNull StepperLayout stepperLayout) {
-        mPagerProgressBar = (ProgressBar) stepperLayout.findViewById(R.id.ms_stepPagerProgressBar);
+        mPagerProgressBar = stepperLayout.findViewById(R.id.ms_stepPagerProgressBar);
     }
 
     @Override

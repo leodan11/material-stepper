@@ -35,7 +35,7 @@ public class TabsStepperFeedbackType implements StepperFeedbackType {
 
     public TabsStepperFeedbackType(@NonNull StepperLayout stepperLayout) {
         mProgressMessageTranslationWhenHidden = stepperLayout.getResources().getDimension(R.dimen.ms_progress_message_translation_when_hidden);
-        mProgressMessageTextView = (TextView) stepperLayout.findViewById(R.id.ms_stepTabsProgressMessage);
+        mProgressMessageTextView = stepperLayout.findViewById(R.id.ms_stepTabsProgressMessage);
         mTabsScrollingContainer = stepperLayout.findViewById(R.id.ms_stepTabsScrollView);
         mStepperLayout = stepperLayout;
         mProgressMessageTextView.setVisibility(View.VISIBLE);

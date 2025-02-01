@@ -13,20 +13,27 @@ public interface Step {
      * <b>This does not mean the user clicked on the Next/Complete button.</b><br>
      * If the user clicked the Next/Complete button and wants to be informed of that error
      * he should handle this in {@link #onError(VerificationError)}.
+     *
      * @return the cause of the validation failure or <i>null</i> if step was validated successfully
      */
     @Nullable
-    default VerificationError verifyStep() { return null; }
+    default VerificationError verifyStep() {
+        return null;
+    }
 
     /**
      * Called when this step gets selected in the the stepper layout.
      */
-    default void onSelected() { }
+    default void onSelected() {
+    }
 
     /**
      * Called when the user clicked on the Next/Complete button and the step verification failed.
-     * @param error the cause of the validation failure
+     *
+     * @param verificationError the cause of the validation failure
      */
-    default void onError(@NonNull VerificationError error) { }
+    default void onError(@NonNull VerificationError verificationError) {
+        System.out.println("Step.onError: " + verificationError.getErrorMessage());
+    }
 
 }

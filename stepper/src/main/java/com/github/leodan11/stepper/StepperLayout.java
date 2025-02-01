@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -801,9 +802,7 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     }
 
     private void extractValuesFromAttributes(AttributeSet attrs, @AttrRes int defStyleAttr) {
-        if (attrs != null) {
-            final TypedArray a = getContext().obtainStyledAttributes(
-                    attrs, R.styleable.StepperLayout, defStyleAttr, 0);
+        try (TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.StepperLayout, defStyleAttr, 0)) {
 
             if (a.hasValue(R.styleable.StepperLayout_ms_backButtonColor)) {
                 mBackButtonColor = a.getColorStateList(R.styleable.StepperLayout_ms_backButtonColor);
@@ -884,6 +883,8 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
             mStepperLayoutTheme = a.getResourceId(R.styleable.StepperLayout_ms_stepperLayoutTheme, R.style.MSDefaultStepperLayoutTheme);
 
             a.recycle();
+        } catch (Exception e) {
+            Log.e(StepperLayout.class.getSimpleName(), "Error while parsing attributes", e);
         }
     }
 

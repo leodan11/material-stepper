@@ -11,12 +11,12 @@ import com.github.leodan11.stepper.R;
 
 /**
  * Contains view information about the step.
- *
  */
 public class StepViewModel {
 
     /**
      * Drawable resource ID to be used for back/next navigation button compound drawables when we do not want to show them.
+     *
      * @see #mNextButtonEndDrawableResId
      * @see #mBackButtonStartDrawableResId
      */
@@ -134,7 +134,7 @@ public class StepViewModel {
 
     public static class Builder {
 
-        @NonNull
+        @Nullable
         private final Context mContext;
 
         @Nullable
@@ -161,6 +161,13 @@ public class StepViewModel {
 
         /**
          * Creates a builder for the step info.
+         */
+        public Builder() {
+            this.mContext = null;
+        }
+
+        /**
+         * Creates a builder for the step info.
          *
          * @param context the parent context
          */
@@ -170,12 +177,16 @@ public class StepViewModel {
 
         /**
          * Set the title using the given resource id.
+         * You must add the current <code>Context</code> when using this method.
          *
          * @param titleId string resource ID for the title
          * @return This Builder object to allow for chaining of calls to set methods
+         * @see #Builder(Context)
          */
         public Builder setTitle(@StringRes int titleId) {
-            mTitle = mContext.getString(titleId);
+            if (mContext != null) {
+                mTitle = mContext.getString(titleId);
+            }
             return this;
         }
 
@@ -185,19 +196,23 @@ public class StepViewModel {
          * @param title CharSequence to be used as a title
          * @return This Builder object to allow for chaining of calls to set methods
          */
-        public Builder setTitle(@Nullable CharSequence title) {
+        public Builder setTitle(@NonNull CharSequence title) {
             mTitle = title;
             return this;
         }
 
         /**
          * Set the subtitle using the given resource id.
+         * You must add the current <code>Context</code> when using this method.
          *
          * @param subtitleId string resource ID for the subtitle
          * @return This Builder object to allow for chaining of calls to set methods
+         * @see #Builder(Context)
          */
         public Builder setSubtitle(@StringRes int subtitleId) {
-            mSubtitle = mContext.getString(subtitleId);
+            if (mContext != null) {
+                mSubtitle = mContext.getString(subtitleId);
+            }
             return this;
         }
 
@@ -207,7 +222,7 @@ public class StepViewModel {
          * @param subtitle CharSequence to be used as a subtitle
          * @return This Builder object to allow for chaining of calls to set methods
          */
-        public Builder setSubtitle(@Nullable CharSequence subtitle) {
+        public Builder setSubtitle(@NonNull CharSequence subtitle) {
             mSubtitle = subtitle;
             return this;
         }
@@ -218,30 +233,38 @@ public class StepViewModel {
          * @param endButtonLabel CharSequence to be used as a Complete/Next button label
          * @return This Builder object to allow for chaining of calls to set methods
          */
-        public Builder setEndButtonLabel(@Nullable CharSequence endButtonLabel) {
+        public Builder setEndButtonLabel(@NonNull CharSequence endButtonLabel) {
             mEndButtonLabel = endButtonLabel;
             return this;
         }
 
         /**
          * Set the label of the Complete/Next button using the given resource id.
+         * You must add the current <code>Context</code> when using this method.
          *
          * @param endButtonLabelId string resource ID for the Complete/Next button
          * @return This Builder object to allow for chaining of calls to set methods
+         * @see #Builder(Context)
          */
         public Builder setEndButtonLabel(@StringRes int endButtonLabelId) {
-            mEndButtonLabel = mContext.getString(endButtonLabelId);
+            if (mContext != null) {
+                mEndButtonLabel = mContext.getString(endButtonLabelId);
+            }
             return this;
         }
 
         /**
          * Set the label of the back button using the given resource id.
+         * You must add the current <code>Context</code> when using this method.
          *
          * @param backButtonLabelId string resource ID for the Back button
          * @return This Builder object to allow for chaining of calls to set methods
+         * @see #Builder(Context)
          */
         public Builder setBackButtonLabel(@StringRes int backButtonLabelId) {
-            mBackButtonLabel = mContext.getString(backButtonLabelId);
+            if (mContext != null) {
+                mBackButtonLabel = mContext.getString(backButtonLabelId);
+            }
             return this;
         }
 
@@ -251,7 +274,7 @@ public class StepViewModel {
          * @param backButtonLabel CharSequence to be used as a Back button label
          * @return This Builder object to allow for chaining of calls to set methods
          */
-        public Builder setBackButtonLabel(@Nullable CharSequence backButtonLabel) {
+        public Builder setBackButtonLabel(@NonNull CharSequence backButtonLabel) {
             mBackButtonLabel = backButtonLabel;
             return this;
         }
@@ -303,6 +326,7 @@ public class StepViewModel {
         /**
          * Creates a {@link StepViewModel} with the arguments supplied to this
          * builder.
+         *
          * @return created StepViewModel
          */
         public StepViewModel create() {
@@ -313,4 +337,5 @@ public class StepViewModel {
         }
 
     }
+
 }

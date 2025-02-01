@@ -21,18 +21,15 @@ public class StepperTypeFactory {
      * @return a stepper type
      */
     public static AbstractStepperType createType(int stepType, StepperLayout stepperLayout) {
-        switch (stepType) {
-            case AbstractStepperType.DOTS:
-                return new DotsStepperType(stepperLayout);
-            case AbstractStepperType.PROGRESS_BAR:
-                return new ProgressBarStepperType(stepperLayout);
-            case AbstractStepperType.TABS:
-                return new TabsStepperType(stepperLayout);
-            case AbstractStepperType.NONE:
-                return new NoneStepperType(stepperLayout);
-            default:
+        return switch (stepType) {
+            case AbstractStepperType.DOTS -> new DotsStepperType(stepperLayout);
+            case AbstractStepperType.PROGRESS_BAR -> new ProgressBarStepperType(stepperLayout);
+            case AbstractStepperType.TABS -> new TabsStepperType(stepperLayout);
+            case AbstractStepperType.NONE -> new NoneStepperType(stepperLayout);
+            default -> {
                 Log.e(TAG, "Unsupported type: " + stepType);
                 throw new IllegalArgumentException("Unsupported type: " + stepType);
-        }
+            }
+        };
     }
 }

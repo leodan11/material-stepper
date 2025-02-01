@@ -17,7 +17,7 @@ public class DisabledContentInteractionStepperFeedbackType implements StepperFee
     private final StepViewPager mStepPager;
 
     public DisabledContentInteractionStepperFeedbackType(@NonNull StepperLayout stepperLayout) {
-        mStepPager = (StepViewPager) stepperLayout.findViewById(R.id.ms_stepPager);
+        mStepPager = stepperLayout.findViewById(R.id.ms_stepPager);
     }
 
     @Override
