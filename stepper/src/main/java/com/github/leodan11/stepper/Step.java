@@ -4,17 +4,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
- * A base step interface which all {@link StepperLayout} steps must implement.
+ * Represents a single step within a stepper layout.
+ * <p></p>
+ * This interface defines lifecycle and validation methods that are called
+ * by the stepper engine during navigation between steps.
  */
 public interface Step {
 
     /**
-     * Checks if the stepper can go to the next step after this step.<br>
-     * <b>This does not mean the user clicked on the Next/Complete button.</b><br>
-     * If the user clicked the Next/Complete button and wants to be informed of that error
-     * he should handle this in {@link #onError(VerificationError)}.
+     * Validates the current step before allowing navigation to the next one.
      *
-     * @return the cause of the validation failure or <i>null</i> if step was validated successfully
+     * <p></p>Note: This method is called to determine whether the step is valid,
+     * but it is not tied directly to the user clicking the Next or Complete button.
+     *
+     * <p></p>If you need to handle cases where the user clicks the Next/Complete button and
+     * validation fails, override {@link #onError(VerificationError)}.
+     *
+     * @return the cause of the validation failure, or {@code null} if validation passed
      */
     @Nullable
     default VerificationError verifyStep() {
@@ -22,18 +28,20 @@ public interface Step {
     }
 
     /**
-     * Called when this step gets selected in the the stepper layout.
+     * Called when this step is selected in the stepper layout.
+     * Use this to update the UI or perform actions when the step becomes active.
      */
     default void onSelected() {
+        // Optional override
     }
 
     /**
-     * Called when the user clicked on the Next/Complete button and the step verification failed.
+     * Called when validation fails after the user clicks the Next or Complete button.
+     * Override this method to display an error message or highlight invalid input.
      *
      * @param verificationError the cause of the validation failure
      */
     default void onError(@NonNull VerificationError verificationError) {
-        System.out.println("Step.onError: " + verificationError.getErrorMessage());
+        // Optional override: handle step validation error
     }
-
 }
