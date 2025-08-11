@@ -882,7 +882,6 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
 
             mStepperLayoutTheme = a.getResourceId(R.styleable.StepperLayout_ms_stepperLayoutTheme, R.style.MSDefaultStepperLayoutTheme);
 
-            a.recycle();
         } catch (Exception e) {
             Log.e(StepperLayout.class.getSimpleName(), "Error while parsing attributes", e);
         }
