@@ -1,5 +1,6 @@
 package com.github.leodan11.stepper;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
 
 /**
@@ -10,35 +11,47 @@ import androidx.annotation.UiThread;
 public interface BlockingStep extends Step {
 
     /**
-     * Notifies this step that the next button/tab was clicked, the step was verified
-     * and the user can go to the next step. This is so that the current step might perform
-     * some last minute operations e.g. a network call before switching to the next step.
-     * {@link StepperLayout.OnNextClickedCallback#goToNextStep()} must be called once these operations finish.
+     * Notifies this step that the next button/tab was clicked, the step was verified,
+     * and the user can proceed to the next step. This allows the current step to perform
+     * last-minute operations (e.g., a network call) before switching to the next step.
+     * <p>
+     * The {@link StepperLayout.OnNextClickedCallback#goToNextStep()} method
+     * must be called once these operations finish.
      *
-     * @param callback callback to call once the user wishes to finally switch to the next step
+     * @param callback callback to invoke once ready to switch to the next step
      */
     @UiThread
-    void onNextClicked(StepperLayout.OnNextClickedCallback callback);
+    default void onNextClicked(@NonNull StepperLayout.OnNextClickedCallback callback) {
+        callback.goToNextStep();
+    }
 
     /**
-     * Notifies this step that the complete button/tab was clicked, the step was verified
-     * and the user can complete the flow. This is so that the current step might perform
-     * some last minute operations e.g. a network call before completing the flow.
-     * {@link StepperLayout.OnCompleteClickedCallback#complete()} must be called once these operations finish.
+     * Notifies this step that the complete button/tab was clicked, the step was verified,
+     * and the user intends to complete the flow. This allows the current step to perform
+     * last-minute operations (e.g., a network call) before finishing the flow.
+     * <p>
+     * The {@link StepperLayout.OnCompleteClickedCallback#complete()} method
+     * must be called once these operations finish.
      *
-     * @param callback callback to call once the user wishes to complete the flow
+     * @param callback callback to invoke once ready to complete the flow
      */
     @UiThread
-    void onCompleteClicked(StepperLayout.OnCompleteClickedCallback callback);
+    default void onCompleteClicked(@NonNull StepperLayout.OnCompleteClickedCallback callback) {
+        callback.complete();
+    }
 
     /**
-     * Notifies this step that the previous button/tab was clicked. This is so that the current step might perform
-     * some last minute operations e.g. a network call before switching to previous step.
-     * {@link StepperLayout.OnBackClickedCallback#goToPrevStep()} must be called once these operations finish.
+     * Notifies this step that the previous button/tab was clicked. This allows the current step
+     * to perform last-minute operations (e.g., a network call) before switching to the previous step.
+     * <p>
+     * The {@link StepperLayout.OnBackClickedCallback#goToPrevStep()} method
+     * must be called once these operations finish.
      *
-     * @param callback callback to call once the user wishes to finally switch to the previous step
+     * @param callback callback to invoke once ready to switch to the previous step
      */
     @UiThread
-    void onBackClicked(StepperLayout.OnBackClickedCallback callback);
+    default void onBackClicked(@NonNull StepperLayout.OnBackClickedCallback callback) {
+        callback.goToPrevStep();
+    }
 
 }

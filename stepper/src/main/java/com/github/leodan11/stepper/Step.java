@@ -14,13 +14,13 @@ public interface Step {
     /**
      * Validates the current step before allowing navigation to the next one.
      *
-     * <p></p>Note: This method is called to determine whether the step is valid,
-     * but it is not tied directly to the user clicking the Next or Complete button.
+     * <p>Note: This method is called to determine whether the step is valid,
+     * but it is not directly triggered by the user clicking the Next or Complete button.</p>
      *
-     * <p></p>If you need to handle cases where the user clicks the Next/Complete button and
-     * validation fails, override {@link #onError(VerificationError)}.
+     * <p>If you need to handle validation failure triggered by the user clicking Next/Complete,
+     * override {@link #onError(VerificationError)}.</p>
      *
-     * @return the cause of the validation failure, or {@code null} if validation passed
+     * @return the cause of the validation failure, or {@code null} if the step is valid
      */
     @Nullable
     default VerificationError verifyStep() {
@@ -28,8 +28,8 @@ public interface Step {
     }
 
     /**
-     * Called when this step is selected in the stepper layout.
-     * Use this to update the UI or perform actions when the step becomes active.
+     * Called when this step becomes the currently selected step in the stepper layout.
+     * Use this callback to update the UI or perform any necessary actions.
      */
     default void onSelected() {
         // Optional override
@@ -37,11 +37,12 @@ public interface Step {
 
     /**
      * Called when validation fails after the user clicks the Next or Complete button.
-     * Override this method to display an error message or highlight invalid input.
+     * Override this method to handle the validation error, such as showing an error message.
      *
      * @param verificationError the cause of the validation failure
      */
     default void onError(@NonNull VerificationError verificationError) {
-        // Optional override: handle step validation error
+        // Optional override: handle validation failure
     }
+
 }
