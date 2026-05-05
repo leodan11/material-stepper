@@ -58,7 +58,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.leodan11'
                 artifactId = 'material-stepper'
-                version = '1.2.2'
+                version = '1.2.3'
 
                 pom {
                     name = "Material Stepper"
@@ -69,4 +69,8 @@ afterEvaluate {
             }
         }
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ["-parameters"]
 }
