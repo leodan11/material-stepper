@@ -81,7 +81,7 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
          *
          * @param newStepPosition new step position
          */
-        void onStepSelected(int newStepPosition);
+        default void onStepSelected(int newStepPosition) {}
 
         /**
          * Called when the Previous step button was pressed while on the first step
