@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,7 +29,8 @@ import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.viewpager.widget.ViewPager;
+import androidx.core.os.BundleCompat;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.github.leodan11.stepper.adapter.StepAdapter;
 import com.github.leodan11.stepper.internal.feedback.StepperFeedbackType;
@@ -39,9 +42,7 @@ import com.github.leodan11.stepper.internal.util.TintUtil;
 import com.github.leodan11.stepper.internal.widget.ColorableProgressBar;
 import com.github.leodan11.stepper.internal.widget.DottedProgressBar;
 import com.github.leodan11.stepper.internal.widget.RightNavigationButton;
-import com.github.leodan11.stepper.internal.widget.StepViewPager;
 import com.github.leodan11.stepper.internal.widget.TabsContainer;
-import com.github.leodan11.stepper.internal.widget.pagetransformer.StepPageTransformerFactory;
 import com.github.leodan11.stepper.viewmodel.StepViewModel;
 
 /**
@@ -54,6 +55,11 @@ import com.github.leodan11.stepper.viewmodel.StepViewModel;
  * Check out <code>values/attrs.xml - StepperLayout</code> for a complete list of customisable properties.
  */
 public class StepperLayout extends LinearLayout implements TabsContainer.TabItemListener {
+
+    private static final String TAG = StepperLayout.class.getSimpleName();
+
+    private static final String STATE_SUPER = "super";
+    private static final String STATE_CURRENT_STEP_POSITION = "currentStepPosition";
 
     public static final int DEFAULT_TAB_DIVIDER_WIDTH = -1;
 
@@ -179,7 +185,7 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
         }
     }
 
-    private ViewPager mPager;
+    private ViewPager2 mPager;
 
     private Button mBackNavigationButton;
 
@@ -268,6 +274,51 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     @NonNull
     private StepperListener mListener = StepperListener.NULL;
 
+    private int mPendingStepSelectedPosition = -1;
+
+    private boolean mSuppressNextStepSelectedCallback;
+
+    private final ViewTreeObserver.OnGlobalLayoutListener mInitialLayoutListener =
+            new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    removeInitialLayoutListener();
+                    if (mStepAdapter != null) {
+                        onUpdate(mCurrentStepPosition, false);
+                    }
+                }
+            };
+
+    private final ViewPager2.OnPageChangeCallback mPageChangeCallback =
+            new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    tryDispatchStepSelected();
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+                    if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                        tryDispatchStepSelected();
+                    }
+                }
+            };
+
+    private final Runnable mPendingStepSelectedRunnable = new Runnable() {
+        @Override
+        public void run() {
+            tryDispatchStepSelected();
+        }
+    };
+
+    private final ViewTreeObserver.OnGlobalLayoutListener mPendingStepSelectedLayoutListener =
+            new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    tryDispatchStepSelected();
+                }
+            };
+
     public StepperLayout(Context context) {
         this(context, null);
     }
@@ -310,19 +361,36 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     public void setAdapter(@NonNull StepAdapter stepAdapter) {
         this.mStepAdapter = stepAdapter;
 
+        final int stepCount = stepAdapter.getCount();
+        if (stepCount == 0) {
+            mCurrentStepPosition = 0;
+        } else if (mCurrentStepPosition >= stepCount) {
+            Log.w(TAG, "Current step position " + mCurrentStepPosition
+                    + " is out of range. Using the last step instead.");
+            mCurrentStepPosition = stepCount - 1;
+        }
+
         mPager.setAdapter(stepAdapter.getPagerAdapter());
 
         mStepperType.onNewAdapter(stepAdapter);
 
         // this is so that the fragments in the adapter can be created BEFORE the onUpdate() method call
-        mPager.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                //noinspection deprecation
-                mPager.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                onUpdate(mCurrentStepPosition, false);
-            }
-        });
+        scheduleInitialUpdate();
+    }
+
+    private void scheduleInitialUpdate() {
+        removeInitialLayoutListener();
+        ViewTreeObserver observer = mPager.getViewTreeObserver();
+        if (observer.isAlive()) {
+            observer.addOnGlobalLayoutListener(mInitialLayoutListener);
+        }
+    }
+
+    private void removeInitialLayoutListener() {
+        ViewTreeObserver observer = mPager.getViewTreeObserver();
+        if (observer.isAlive()) {
+            observer.removeOnGlobalLayoutListener(mInitialLayoutListener);
+        }
     }
 
     /**
@@ -332,20 +400,23 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
      * @param currentStepPosition the initial step position, must be in the range of the adapter item count
      */
     public void setAdapter(@NonNull StepAdapter stepAdapter, @IntRange(from = 0) int currentStepPosition) {
+        if (currentStepPosition < 0 || currentStepPosition >= stepAdapter.getCount()) {
+            throw new IllegalArgumentException("currentStepPosition must be in the range [0, "
+                    + stepAdapter.getCount() + ") but was " + currentStepPosition);
+        }
         this.mCurrentStepPosition = currentStepPosition;
         setAdapter(stepAdapter);
     }
 
     /**
-     * Overrides the default page transformer used in the underlying {@link StepViewPager}.
-     * If you're supporting RTL make sure your {@link ViewPager.PageTransformer} accounts for it.
+     * Overrides the default page transformer used in the underlying {@link ViewPager2}.
+     * ViewPager2 handles RTL layout direction natively, so transformers do not need RTL-specific logic.
      *
      * @param pageTransformer new page transformer
-     * @see StepViewPager
-     * @see StepPageTransformerFactory
+     * @see ViewPager2#setPageTransformer(ViewPager2.PageTransformer)
      */
-    public void setPageTransformer(@Nullable ViewPager.PageTransformer pageTransformer) {
-        mPager.setPageTransformer(false, pageTransformer);
+    public void setPageTransformer(@Nullable ViewPager2.PageTransformer pageTransformer) {
+        mPager.setPageTransformer(pageTransformer);
     }
 
     public int getSelectedColor() {
@@ -381,6 +452,9 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
      * Unlike {@link #setCurrentStepPosition(int)} this actually verifies the step.
      */
     public void proceed() {
+        if (mStepAdapter == null) {
+            throw new IllegalStateException("StepAdapter must be set before calling proceed()");
+        }
         if (isLastPosition(mCurrentStepPosition)) {
             onComplete();
         } else {
@@ -411,6 +485,14 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
      * @param currentStepPosition new current step position
      */
     public void setCurrentStepPosition(int currentStepPosition) {
+        if (mStepAdapter == null) {
+            throw new IllegalStateException("StepAdapter must be set before calling setCurrentStepPosition()");
+        }
+        if (currentStepPosition < 0 || currentStepPosition >= mStepAdapter.getCount()) {
+            throw new IllegalArgumentException("currentStepPosition must be in the range [0, "
+                    + mStepAdapter.getCount() + ") but was " + currentStepPosition);
+        }
+
         int previousStepPosition = mCurrentStepPosition;
         if (currentStepPosition < previousStepPosition) {
             updateErrorFlagWhenGoingBack();
@@ -655,7 +737,7 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
      * limit will be recreated from the adapter when needed.
      *
      * @param limit How many steps will be kept offscreen in an idle state.
-     * @see ViewPager#setOffscreenPageLimit(int)
+     * @see ViewPager2#setOffscreenPageLimit(int)
      */
     public void setOffscreenPageLimit(int limit) {
         mPager.setOffscreenPageLimit(limit);
@@ -735,6 +817,10 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
 
         bindViews();
 
+        mPager.setUserInputEnabled(false);
+        mPager.setOffscreenPageLimit(1);
+        mPager.registerOnPageChangeCallback(mPageChangeCallback);
+
         initNavigation();
 
         mDottedProgressBar.setVisibility(GONE);
@@ -802,7 +888,8 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     }
 
     private void extractValuesFromAttributes(AttributeSet attrs, @AttrRes int defStyleAttr) {
-        try (TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.StepperLayout, defStyleAttr, 0)) {
+        final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.StepperLayout, defStyleAttr, 0);
+        try {
 
             if (a.hasValue(R.styleable.StepperLayout_ms_backButtonColor)) {
                 mBackButtonColor = a.getColorStateList(R.styleable.StepperLayout_ms_backButtonColor);
@@ -883,7 +970,9 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
             mStepperLayoutTheme = a.getResourceId(R.styleable.StepperLayout_ms_stepperLayoutTheme, R.style.MSDefaultStepperLayoutTheme);
 
         } catch (Exception e) {
-            Log.e(StepperLayout.class.getSimpleName(), "Error while parsing attributes", e);
+            Log.e(TAG, "Error while parsing attributes", e);
+        } finally {
+            a.recycle();
         }
     }
 
@@ -899,11 +988,12 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     }
 
     private boolean isLastPosition(int position) {
-        return position == mStepAdapter.getCount() - 1;
+        return mStepAdapter != null && position == mStepAdapter.getCount() - 1;
     }
 
+    @Nullable
     private Step findCurrentStep() {
-        return mStepAdapter.findStep(mCurrentStepPosition);
+        return mStepAdapter != null ? mStepAdapter.findStep(mCurrentStepPosition) : null;
     }
 
     private void updateErrorFlagWhenGoingBack() {
@@ -913,6 +1003,10 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     @UiThread
     private void onNext() {
         Step step = findCurrentStep();
+        if (step == null) {
+            Log.w(TAG, "The current step is not ready yet. Navigation ignored.");
+            return;
+        }
 
         if (verifyCurrentStep(step)) {
             invalidateCurrentPosition();
@@ -957,6 +1051,11 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
 
     private void onComplete() {
         Step step = findCurrentStep();
+        if (step == null) {
+            Log.w(TAG, "The current step is not ready yet. Completion ignored.");
+            return;
+        }
+
         if (verifyCurrentStep(step)) {
             invalidateCurrentPosition();
             return;
@@ -971,10 +1070,25 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     }
 
     private void onUpdate(int newStepPosition, boolean userTriggeredChange) {
-        mPager.setCurrentItem(newStepPosition);
+        final StepAdapter stepAdapter = mStepAdapter;
+        final boolean notifyStepSelected = !mSuppressNextStepSelectedCallback;
+        mSuppressNextStepSelectedCallback = false;
+
+        if (stepAdapter == null) {
+            Log.w(TAG, "Cannot update the stepper: no StepAdapter has been set.");
+            return;
+        }
+
+        final int stepCount = stepAdapter.getCount();
+        if (stepCount == 0 || newStepPosition < 0 || newStepPosition >= stepCount) {
+            Log.w(TAG, "Cannot update the stepper: step position " + newStepPosition + " is out of range.");
+            return;
+        }
+
+        mPager.setCurrentItem(newStepPosition, userTriggeredChange);
         final boolean isLast = isLastPosition(newStepPosition);
         final boolean isFirst = newStepPosition == 0;
-        final StepViewModel viewModel = mStepAdapter.getViewModel(newStepPosition);
+        final StepViewModel viewModel = stepAdapter.getViewModel(newStepPosition);
 
         int backButtonTargetVisibility = (isFirst && !mShowBackButtonOnFirstStep) || !viewModel.isBackButtonVisible() ? View.GONE : View.VISIBLE;
         int nextButtonVisibility = isLast || !viewModel.isEndButtonVisible() ? View.GONE : View.VISIBLE;
@@ -993,10 +1107,101 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
         setCompoundDrawablesForNavigationButtons(viewModel.getBackButtonStartDrawableResId(), viewModel.getNextButtonEndDrawableResId());
 
         mStepperType.onStepSelected(newStepPosition, userTriggeredChange);
-        mListener.onStepSelected(newStepPosition);
-        Step step = mStepAdapter.findStep(newStepPosition);
+        if (notifyStepSelected) {
+            mListener.onStepSelected(newStepPosition);
+        }
+        dispatchStepSelected(newStepPosition);
+    }
+
+    private void dispatchStepSelected(int position) {
+        mPendingStepSelectedPosition = position;
+        addPendingStepSelectedLayoutListener();
+        tryDispatchStepSelected();
+        if (mPendingStepSelectedPosition >= 0) {
+            mPager.removeCallbacks(mPendingStepSelectedRunnable);
+            mPager.post(mPendingStepSelectedRunnable);
+        }
+    }
+
+    private void tryDispatchStepSelected() {
+        final int position = mPendingStepSelectedPosition;
+        if (position < 0) {
+            return;
+        }
+        if (mStepAdapter == null) {
+            return;
+        }
+        if (position != mCurrentStepPosition) {
+            clearPendingStepSelected();
+            return;
+        }
+
+        Step step = mStepAdapter.findStep(position);
         if (step != null) {
+            clearPendingStepSelected();
             step.onSelected();
+        }
+    }
+
+    private void addPendingStepSelectedLayoutListener() {
+        ViewTreeObserver observer = mPager.getViewTreeObserver();
+        if (observer.isAlive()) {
+            observer.removeOnGlobalLayoutListener(mPendingStepSelectedLayoutListener);
+            observer.addOnGlobalLayoutListener(mPendingStepSelectedLayoutListener);
+        }
+    }
+
+    private void clearPendingStepSelected() {
+        mPendingStepSelectedPosition = -1;
+        removePendingStepSelectedLayoutListener();
+        mPager.removeCallbacks(mPendingStepSelectedRunnable);
+    }
+
+    private void removePendingStepSelectedLayoutListener() {
+        ViewTreeObserver observer = mPager.getViewTreeObserver();
+        if (observer.isAlive()) {
+            observer.removeOnGlobalLayoutListener(mPendingStepSelectedLayoutListener);
+        }
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle state = new Bundle();
+        state.putParcelable(STATE_SUPER, super.onSaveInstanceState());
+        state.putInt(STATE_CURRENT_STEP_POSITION, mCurrentStepPosition);
+        return state;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof Bundle)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        Bundle bundle = (Bundle) state;
+        Parcelable superState = BundleCompat.getParcelable(bundle, STATE_SUPER, Parcelable.class);
+        super.onRestoreInstanceState(superState);
+
+        mCurrentStepPosition = bundle.getInt(STATE_CURRENT_STEP_POSITION, 0);
+        mSuppressNextStepSelectedCallback = true;
+
+        if (mStepAdapter != null) {
+            removeInitialLayoutListener();
+
+            final int stepCount = mStepAdapter.getCount();
+            if (stepCount > 0 && mCurrentStepPosition >= stepCount) {
+                mCurrentStepPosition = stepCount - 1;
+            }
+
+            mPager.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mStepAdapter != null) {
+                        onUpdate(mCurrentStepPosition, false);
+                    }
+                }
+            });
         }
     }
 

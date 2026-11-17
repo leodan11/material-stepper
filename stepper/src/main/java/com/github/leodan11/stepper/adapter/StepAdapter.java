@@ -2,8 +2,7 @@ package com.github.leodan11.stepper.adapter;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.leodan11.stepper.Step;
 import com.github.leodan11.stepper.StepperLayout;
@@ -16,7 +15,7 @@ public interface StepAdapter {
 
     /**
      * Create each step of the {@link StepperLayout}.
-     * @param position The position of the {@link PagerAdapter} to be used inside the {@link ViewPager}.
+     * @param position The position of the adapter item to be used inside the ViewPager2.
      * @return the step to be used inside the {@link StepperLayout}.
      */
     Step createStep(@IntRange(from = 0) int position);
@@ -45,7 +44,8 @@ public interface StepAdapter {
 
     /**
      * Method for internal purpose. Should not be inherited.
-     * @return the adapter to be used in the {@link ViewPager}.
+     * @return the RecyclerView adapter to be used in the ViewPager2.
      */
-    PagerAdapter getPagerAdapter();
+    @NonNull
+    RecyclerView.Adapter<?> getPagerAdapter();
 }

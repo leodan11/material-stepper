@@ -1,11 +1,12 @@
 package com.github.leodan11.stepper.internal.feedback;
 
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
 import com.github.leodan11.stepper.R;
 import com.github.leodan11.stepper.StepperLayout;
-import com.github.leodan11.stepper.internal.widget.StepViewPager;
 
 /**
  * Feedback stepper type which intercepts touch events on the steps' content and ignores them.
@@ -14,10 +15,10 @@ import com.github.leodan11.stepper.internal.widget.StepViewPager;
 public class DisabledContentInteractionStepperFeedbackType implements StepperFeedbackType {
 
     @NonNull
-    private final StepViewPager mStepPager;
+    private final View mContentTouchBlocker;
 
     public DisabledContentInteractionStepperFeedbackType(@NonNull StepperLayout stepperLayout) {
-        mStepPager = stepperLayout.findViewById(R.id.ms_stepPager);
+        mContentTouchBlocker = stepperLayout.findViewById(R.id.ms_stepPagerTouchBlocker);
     }
 
     @Override
@@ -31,7 +32,7 @@ public class DisabledContentInteractionStepperFeedbackType implements StepperFee
     }
 
     private void setContentInteractionEnabled(boolean enabled) {
-        mStepPager.setBlockTouchEventsFromChildrenEnabled(!enabled);
+        mContentTouchBlocker.setVisibility(enabled ? View.GONE : View.VISIBLE);
     }
 
 }

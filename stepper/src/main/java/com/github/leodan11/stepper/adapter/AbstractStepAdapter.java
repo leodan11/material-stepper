@@ -4,7 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
-import androidx.viewpager.widget.PagerAdapter;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.leodan11.stepper.StepperLayout;
 import com.github.leodan11.stepper.viewmodel.StepViewModel;
@@ -13,9 +13,12 @@ import com.github.leodan11.stepper.viewmodel.StepViewModel;
  * A base adapter class which returns step to use inside of the {@link StepperLayout}.
  * This class is intended to be inherited if you need to use {@link StepperLayout} without fragments.
  * Otherwise, you should use {@link AbstractFragmentStepAdapter}
+ * <p>
+ * Subclasses must implement the {@link RecyclerView.Adapter} methods
+ * ({@link #onCreateViewHolder}, {@link #onBindViewHolder}) in addition to {@link #createStep(int)}.
  */
 public abstract class AbstractStepAdapter
-        extends PagerAdapter
+        extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         implements StepAdapter {
 
     @NonNull
@@ -34,7 +37,14 @@ public abstract class AbstractStepAdapter
 
     /** {@inheritDoc} */
     @Override
-    public final PagerAdapter getPagerAdapter() {
+    public final int getItemCount() {
+        return getCount();
+    }
+
+    /** {@inheritDoc} */
+    @NonNull
+    @Override
+    public final RecyclerView.Adapter<?> getPagerAdapter() {
         return this;
     }
 }

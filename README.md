@@ -25,10 +25,37 @@ Credits go completely to its creator and the people who have contributed with th
   
 ## Getting started
 
-### Download (from JCenter)
+### Download (from JitPack)
+
+Add the JitPack repository to your `settings.gradle`:
+
+```groovy
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+Then add the dependency:
+
 ```groovy
 implementation 'com.github.leodan11:material-stepper:$tag'
 ```
+
+### Breaking changes in 2.0.0
+
+- The step container is now `ViewPager2`.
+- `StepAdapter#getPagerAdapter()` returns a `RecyclerView.Adapter`.
+- `AbstractStepAdapter` extends `RecyclerView.Adapter`; subclasses implement
+  `onCreateViewHolder` and `onBindViewHolder`.
+- `AbstractFragmentStepAdapter` extends `FragmentStateAdapter`. Steps beyond the
+  offscreen page limit may be destroyed and recreated, so step fragments must save
+  their state properly (fields are not retained indefinitely).
+- `StepperLayout#setPageTransformer` now accepts a `ViewPager2.PageTransformer`.
+- The RTL-specific page transformer was removed because ViewPager2 handles RTL natively.
 
 ### Create layout in XML
 
@@ -80,14 +107,18 @@ public class StepFragmentSample extends Fragment implements Step {
 ```
 
 ### Extend AbstractFragmentStepAdapter
-AbstractFragmentStepAdapter extends [FragmentPagerAdapter](https://developer.android.com/reference/androidx/fragment/app/FragmentPagerAdapter)
-but instead of overriding the method `getItem(int)` you must override the `createStep(int)` method.
+AbstractFragmentStepAdapter extends [FragmentStateAdapter](https://developer.android.com/reference/androidx/viewpager2/adapter/FragmentStateAdapter)
+but instead of overriding the method `createFragment(int)` you must override the `createStep(int)` method.
+
+The `(Context, FragmentManager)` constructor requires the context to implement `LifecycleOwner`
+(for example, an `AppCompatActivity`). You can also use the `(FragmentActivity)` or `(Fragment)`
+constructors, which resolve the lifecycle automatically.
 
 ```java
 public static class MyStepperAdapter extends AbstractFragmentStepAdapter {
 
-    public MyStepperAdapter(FragmentManager fm, Context context) {
-        super(fm, context);
+    public MyStepperAdapter(Context context, FragmentManager fm) {
+        super(context, fm);
     }
 
     @Override
@@ -128,7 +159,7 @@ public class StepperActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         mStepperLayout = (StepperLayout) findViewById(R.id.stepperLayout);
-        mStepperLayout.setAdapter(new MyStepperAdapter(getSupportFragmentManager(), this));
+        mStepperLayout.setAdapter(new MyStepperAdapter(this, getSupportFragmentManager()));
     }
 }
 ```
