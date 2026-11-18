@@ -14,6 +14,7 @@ import androidx.annotation.RestrictTo;
 import androidx.core.content.ContextCompat;
 
 import com.github.leodan11.stepper.R;
+import com.github.leodan11.stepper.internal.util.ThemeUtils;
 import com.github.leodan11.stepper.internal.util.TintUtil;
 
 /**
@@ -55,8 +56,10 @@ public class ColorableProgressBar extends ProgressBar {
 
     public ColorableProgressBar(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mProgressColor = ContextCompat.getColor(context, R.color.ms_selectedColor);
-        mProgressBackgroundColor = ContextCompat.getColor(context, R.color.ms_unselectedColor);
+        mProgressColor = ThemeUtils.getPrimaryColor(context, ContextCompat.getColor(context, R.color.ms_selectedColor));
+        mProgressBackgroundColor = ThemeUtils.withAlpha(
+                ThemeUtils.getOnSurfaceColor(context, ContextCompat.getColor(context, R.color.ms_black)),
+                ThemeUtils.ALPHA_INACTIVE_STEP);
         super.setProgressDrawable(ContextCompat.getDrawable(context, R.drawable.ms_colorable_progress_bar));
         updateProgressDrawable();
     }

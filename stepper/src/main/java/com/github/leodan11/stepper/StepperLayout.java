@@ -38,6 +38,7 @@ import com.github.leodan11.stepper.internal.feedback.StepperFeedbackTypeFactory;
 import com.github.leodan11.stepper.internal.type.AbstractStepperType;
 import com.github.leodan11.stepper.internal.type.StepperTypeFactory;
 import com.github.leodan11.stepper.internal.util.AnimationUtil;
+import com.github.leodan11.stepper.internal.util.ThemeUtils;
 import com.github.leodan11.stepper.internal.util.TintUtil;
 import com.github.leodan11.stepper.internal.widget.ColorableProgressBar;
 import com.github.leodan11.stepper.internal.widget.DottedProgressBar;
@@ -977,11 +978,22 @@ public class StepperLayout extends LinearLayout implements TabsContainer.TabItem
     }
 
     private void initDefaultValues() {
-        mBackButtonColor = mNextButtonColor = mCompleteButtonColor =
-                ContextCompat.getColorStateList(getContext(), R.color.ms_bottomNavigationButtonTextColor);
-        mSelectedColor = ContextCompat.getColor(getContext(), R.color.ms_selectedColor);
-        mUnselectedColor = ContextCompat.getColor(getContext(), R.color.ms_unselectedColor);
-        mErrorColor = ContextCompat.getColor(getContext(), R.color.ms_errorColor);
+        final Context context = getContext();
+
+        // The defaults follow the theme (Material 2 or Material 3, light or dark).
+        // The values from res/values/colors.xml are only used as a fallback when the theme
+        // does not define the Material color attributes.
+        final int primaryColor = ThemeUtils.getPrimaryColor(context,
+                ContextCompat.getColor(context, R.color.ms_selectedColor));
+        final int onSurfaceColor = ThemeUtils.getOnSurfaceColor(context,
+                ContextCompat.getColor(context, R.color.ms_black));
+
+        mSelectedColor = primaryColor;
+        mUnselectedColor = ThemeUtils.withAlpha(onSurfaceColor, ThemeUtils.ALPHA_INACTIVE_STEP);
+        mErrorColor = ThemeUtils.getErrorColor(context, ContextCompat.getColor(context, R.color.ms_errorColor));
+        mBackButtonColor = mNextButtonColor = mCompleteButtonColor = ThemeUtils.createTextButtonColorStateList(
+                primaryColor,
+                ThemeUtils.withAlpha(onSurfaceColor, ThemeUtils.ALPHA_DISABLED_BUTTON));
         mBackButtonText = getContext().getString(R.string.ms_back);
         mNextButtonText = getContext().getString(R.string.ms_next);
         mCompleteButtonText = getContext().getString(R.string.ms_complete);

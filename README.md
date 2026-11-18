@@ -58,6 +58,12 @@ implementation 'com.github.leodan11:material-stepper:$tag'
   their state properly (fields are not retained indefinitely).
 - `StepperLayout#setPageTransformer` now accepts a `ViewPager2.PageTransformer`.
 - The RTL-specific page transformer was removed because ViewPager2 handles RTL natively.
+- The default colors are now resolved from the app theme (`?attr/colorPrimary`,
+  `?attr/colorOnSurface`, `?attr/colorError` and `?attr/colorSurface`) instead of the
+  hardcoded blue/grey/red palette, so the stepper follows Material 2, Material 3 and
+  their dark variants automatically. The previous colors are only used as a fallback
+  when the theme does not define those attributes. See
+  [Theming (Material 2 / Material 3)](#theming-material-2--material-3).
 
 ### Create layout in XML
 
@@ -255,5 +261,58 @@ A list of `ms_stepperLayoutTheme` attributes responsible for styling of StepperL
 | *ms_stepTabTitleStyle*            | Used by ms_stepTitle in layout/ms_step_tab                    |
 | *ms_stepTabSubtitleStyle*         | Used by ms_stepSubtitle in layout/ms_step_tab                    |
 | *ms_stepTabDividerStyle*          | Used by ms_stepDivider in layout/ms_step_tab                  |
+
+## Theming (Material 2 / Material 3)
+
+The library does not ship a fixed color palette. By default every color is resolved
+from the app theme, so the stepper works with `Theme.MaterialComponents.*` (Material 2)
+and `Theme.Material3.*` (Material 3), in both light and dark mode:
+
+| Element | Theme attribute |
+| ------------------------------------ | --------------------------------------- |
+| active step, progress bar, navigation buttons | `?attr/colorPrimary`           |
+| inactive steps, dividers, disabled navigation buttons | `?attr/colorOnSurface` (low opacity) |
+| step titles, subtitles, progress message | `?attr/colorOnSurface`             |
+| tabs container and bottom navigation background | `?attr/colorSurface`           |
+| error state | `?attr/colorError` |
+
+A Material Components theme is required, because the internal styles extend
+`Widget.Material3.Button.TextButton`, which itself extends the Material 2 chain.
+
+The step number and the done indicator are always drawn in black or white, picked at
+runtime from the luminance of the step circle (composited over the surface color first,
+so translucent inactive circles are measured correctly). `ms_stepTabNumberStyle` and
+`ms_stepTabDoneIndicatorStyle` still control the layout, size and typography of the
+marker (the done indicator also keeps its `srcCompat` drawable), but their color is
+ignored. This keeps the marker readable for any `ms_activeStepColor`,
+`ms_inactiveStepColor` or `ms_errorColor`, in light and dark themes.
+
+### Overriding the colors
+
+The `ms_*` attributes still win over the defaults:
+
+```xml
+<com.github.leodan11.stepper.StepperLayout
+    app:ms_activeStepColor="?attr/colorPrimary"
+    app:ms_errorColor="?attr/colorError"
+    app:ms_stepperType="tabs" />
+```
+
+### Overriding the styles
+
+For deeper customization define a theme that extends `MSDefaultStepperLayoutTheme` and
+point `ms_stepperLayoutTheme` to it. The theme is applied as an overlay on top of the
+app theme, so `?attr/...` references keep working:
+
+```xml
+<style name="MyStepper" parent="MSDefaultStepperLayoutTheme">
+    <item name="ms_tabsContainerStyle">@style/MyTabsContainer</item>
+    <item name="ms_stepTabTitleStyle">@style/MyStepTabTitle</item>
+</style>
+```
+
+> Avoid Material 3 only attributes such as `?attr/colorSurfaceContainer` or
+> `?attr/colorOutline`: they are undefined in Material 2 themes and the affected style
+> item is silently ignored. Use `?attr/colorSurface` and `?attr/colorOnSurface` instead.
 
 

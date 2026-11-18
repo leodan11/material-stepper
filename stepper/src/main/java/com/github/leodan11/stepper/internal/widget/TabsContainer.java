@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat;
 import com.github.leodan11.stepper.R;
 import com.github.leodan11.stepper.StepperLayout;
 import com.github.leodan11.stepper.VerificationError;
+import com.github.leodan11.stepper.internal.util.ThemeUtils;
 import com.github.leodan11.stepper.viewmodel.StepViewModel;
 
 import java.util.List;
@@ -80,9 +81,11 @@ public class TabsContainer extends FrameLayout {
         super(context, attrs, defStyleAttr);
         LayoutInflater.from(context).inflate(R.layout.ms_tabs_container, this, true);
 
-        mSelectedColor = ContextCompat.getColor(context, R.color.ms_selectedColor);
-        mUnselectedColor = ContextCompat.getColor(context, R.color.ms_unselectedColor);
-        mErrorColor = ContextCompat.getColor(context, R.color.ms_errorColor);
+        mSelectedColor = ThemeUtils.getPrimaryColor(context, ContextCompat.getColor(context, R.color.ms_selectedColor));
+        mUnselectedColor = ThemeUtils.withAlpha(
+                ThemeUtils.getOnSurfaceColor(context, ContextCompat.getColor(context, R.color.ms_black)),
+                ThemeUtils.ALPHA_INACTIVE_STEP);
+        mErrorColor = ThemeUtils.getErrorColor(context, ContextCompat.getColor(context, R.color.ms_errorColor));
         mContainerLateralPadding = context.getResources().getDimensionPixelOffset(R.dimen.ms_tabs_container_lateral_padding);
 
         mTabsInnerContainer = findViewById(R.id.ms_stepTabsInnerContainer);

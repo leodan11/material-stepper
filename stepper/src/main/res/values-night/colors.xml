@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scrim shown on top of the step content while a blocking operation is running.
+         It dims the content in dark themes instead of lightening it. -->
+    <color name="ms_defaultContentOverlayColor">#89000000</color>
+</resources>

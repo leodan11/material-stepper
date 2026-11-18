@@ -13,6 +13,7 @@ import androidx.annotation.RestrictTo;
 import androidx.core.content.ContextCompat;
 
 import com.github.leodan11.stepper.R;
+import com.github.leodan11.stepper.internal.util.ThemeUtils;
 import com.github.leodan11.stepper.internal.util.TintUtil;
 
 /**
@@ -48,8 +49,10 @@ public class DottedProgressBar extends LinearLayout {
 
     public DottedProgressBar(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mSelectedColor = ContextCompat.getColor(context, R.color.ms_selectedColor);
-        mUnselectedColor = ContextCompat.getColor(context, R.color.ms_unselectedColor);
+        mSelectedColor = ThemeUtils.getPrimaryColor(context, ContextCompat.getColor(context, R.color.ms_selectedColor));
+        mUnselectedColor = ThemeUtils.withAlpha(
+                ThemeUtils.getOnSurfaceColor(context, ContextCompat.getColor(context, R.color.ms_black)),
+                ThemeUtils.ALPHA_INACTIVE_STEP);
     }
 
     public void setUnselectedColor(@ColorInt int unselectedColor) {

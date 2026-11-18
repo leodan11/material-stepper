@@ -1,6 +1,8 @@
 package com.github.leodan11.stepper.internal.widget;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Animatable;
@@ -22,12 +24,14 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import com.github.leodan11.stepper.R;
 import com.github.leodan11.stepper.StepperLayout;
 import com.github.leodan11.stepper.VerificationError;
 import com.github.leodan11.stepper.internal.util.ObjectsCompat;
+import com.github.leodan11.stepper.internal.util.ThemeUtils;
 
 /**
  * A widget for a single tab in the {@link TabsContainer}.
@@ -46,6 +50,11 @@ public class StepTab extends RelativeLayout {
     private static final float HALF_SIZE_SCALE = 0.5f;
 
     private static final float FULL_SIZE_SCALE = 1.0f;
+
+    /**
+     * Luminance above which the step indicator is considered light and needs a dark marker on top of it.
+     */
+    private static final float LIGHT_COLOR_LUMINANCE_THRESHOLD = 0.5f;
 
     @VisibleForTesting
     final TextView mStepNumberTextView;
@@ -84,6 +93,9 @@ public class StepTab extends RelativeLayout {
     private int mErrorColor;
 
     @ColorInt
+    private final int mSurfaceColor;
+
+    @ColorInt
     private final int mTitleColor;
 
     @ColorInt
@@ -107,9 +119,15 @@ public class StepTab extends RelativeLayout {
         super(context, attrs, defStyleAttr);
         LayoutInflater.from(getContext()).inflate(R.layout.ms_step_tab, this, true);
 
-        mSelectedColor = ContextCompat.getColor(context, R.color.ms_selectedColor);
-        mUnselectedColor = ContextCompat.getColor(context, R.color.ms_unselectedColor);
-        mErrorColor = ContextCompat.getColor(context, R.color.ms_errorColor);
+        final int onSurfaceColor = ThemeUtils.getOnSurfaceColor(context,
+                ContextCompat.getColor(context, R.color.ms_black));
+
+        mSurfaceColor = ThemeUtils.getSurfaceColor(context, ContextCompat.getColor(context, R.color.ms_white));
+
+        // Defaults follow the theme; they can still be overridden with the StepperLayout attributes.
+        mSelectedColor = ThemeUtils.getPrimaryColor(context, ContextCompat.getColor(context, R.color.ms_selectedColor));
+        mUnselectedColor = ThemeUtils.withAlpha(onSurfaceColor, ThemeUtils.ALPHA_INACTIVE_STEP);
+        mErrorColor = ThemeUtils.getErrorColor(context, ContextCompat.getColor(context, R.color.ms_errorColor));
 
         mStepNumberTextView = findViewById(R.id.ms_stepNumber);
         mStepDoneIndicator = findViewById(R.id.ms_stepDoneIndicator);
@@ -118,8 +136,12 @@ public class StepTab extends RelativeLayout {
         mStepTitleTextView = findViewById(R.id.ms_stepTitle);
         mStepSubtitleTextView = findViewById(R.id.ms_stepSubtitle);
 
+        mStepDivider.setBackgroundTintList(ColorStateList.valueOf(
+                ThemeUtils.withAlpha(onSurfaceColor, ThemeUtils.ALPHA_INACTIVE_STEP)));
+
         mTitleColor = mStepTitleTextView.getCurrentTextColor();
-        mSubtitleColor = mStepSubtitleTextView.getCurrentTextColor();
+        mSubtitleColor = ThemeUtils.withAlpha(mStepSubtitleTextView.getCurrentTextColor(), ThemeUtils.ALPHA_STEP_SUBTITLE);
+        mStepSubtitleTextView.setTextColor(mSubtitleColor);
 
         Typeface typeface = mStepTitleTextView.getTypeface();
         mNormalTypeface = Typeface.create(typeface, Typeface.NORMAL);
@@ -204,6 +226,26 @@ public class StepTab extends RelativeLayout {
                 : getResources().getDimensionPixelOffset(R.dimen.ms_step_tab_divider_length);
     }
 
+    /**
+     * Tints the step indicator circle and picks a readable color for the step number and the done
+     * indicator, so the tab stays legible with light and dark themes.
+     *
+     * @param circleColor color of the step indicator circle
+     */
+    private void updateCircleColor(@ColorInt int circleColor) {
+        mStepIconBackground.setColorFilter(circleColor, PorterDuff.Mode.SRC_IN);
+
+        // The inactive circle color is translucent, so it is composited over the surface color
+        // before computing its luminance.
+        final int opaqueCircleColor = ColorUtils.compositeColors(circleColor, mSurfaceColor);
+        final int markerColor = ColorUtils.calculateLuminance(opaqueCircleColor) > LIGHT_COLOR_LUMINANCE_THRESHOLD
+                ? Color.BLACK
+                : Color.WHITE;
+
+        mStepNumberTextView.setTextColor(markerColor);
+        mStepDoneIndicator.setColorFilter(markerColor);
+    }
+
     private Drawable createCircleToWarningDrawable() {
         return createAnimatedVectorDrawable(R.drawable.ms_animated_vector_circle_to_warning_24dp);
     }
@@ -275,7 +317,7 @@ public class StepTab extends RelativeLayout {
         protected void changeToWarning(@Nullable CharSequence errorMessage) {
             mStepDoneIndicator.setVisibility(View.GONE);
             mStepNumberTextView.setVisibility(View.GONE);
-            mStepIconBackground.setColorFilter(mErrorColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mErrorColor);
             mStepTitleTextView.setTextColor(mErrorColor);
             mStepSubtitleTextView.setTextColor(mErrorColor);
             updateSubtitle(errorMessage);
@@ -310,7 +352,7 @@ public class StepTab extends RelativeLayout {
 
         @Override
         protected void changeToInactiveNumber() {
-            mStepIconBackground.setColorFilter(mUnselectedColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mUnselectedColor);
             mStepTitleTextView.setTextColor(mTitleColor);
             mStepTitleTextView.setAlpha(ALPHA_INACTIVE_STEP_TITLE);
             mStepSubtitleTextView.setTextColor(mSubtitleColor);
@@ -319,14 +361,14 @@ public class StepTab extends RelativeLayout {
 
         @Override
         protected void changeToActiveNumber() {
-            mStepIconBackground.setColorFilter(mSelectedColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mSelectedColor);
             mStepTitleTextView.setAlpha(ALPHA_ACTIVE_STEP_TITLE);
             super.changeToActiveNumber();
         }
 
         @Override
         protected void changeToDone() {
-            mStepIconBackground.setColorFilter(mSelectedColor);
+            updateCircleColor(mSelectedColor);
             mStepTitleTextView.setAlpha(ALPHA_ACTIVE_STEP_TITLE);
             super.changeToDone();
         }
@@ -337,7 +379,7 @@ public class StepTab extends RelativeLayout {
 
         @Override
         protected void changeToInactiveNumber() {
-            mStepIconBackground.setColorFilter(mUnselectedColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mUnselectedColor);
             mStepTitleTextView.setAlpha(ALPHA_INACTIVE_STEP_TITLE);
             super.changeToInactiveNumber();
         }
@@ -350,7 +392,7 @@ public class StepTab extends RelativeLayout {
         protected void changeToInactiveNumber() {
             mStepDoneIndicator.setVisibility(GONE);
             mStepNumberTextView.setVisibility(VISIBLE);
-            mStepIconBackground.setColorFilter(mUnselectedColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mUnselectedColor);
             mStepTitleTextView.setAlpha(ALPHA_INACTIVE_STEP_TITLE);
             super.changeToInactiveNumber();
         }
@@ -378,7 +420,7 @@ public class StepTab extends RelativeLayout {
         protected void changeToDone() {
             animateViewIn(mStepDoneIndicator);
 
-            mStepIconBackground.setColorFilter(mSelectedColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mSelectedColor);
             mStepTitleTextView.setTextColor(mTitleColor);
             mStepSubtitleTextView.setTextColor(mSubtitleColor);
             super.changeToDone();
@@ -388,7 +430,7 @@ public class StepTab extends RelativeLayout {
         protected void changeToInactiveNumber() {
             animateViewIn(mStepNumberTextView);
 
-            mStepIconBackground.setColorFilter(mUnselectedColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mUnselectedColor);
             mStepTitleTextView.setTextColor(mTitleColor);
             mStepTitleTextView.setAlpha(ALPHA_INACTIVE_STEP_TITLE);
             mStepSubtitleTextView.setTextColor(mSubtitleColor);
@@ -400,7 +442,7 @@ public class StepTab extends RelativeLayout {
         protected void changeToActiveNumber() {
             animateViewIn(mStepNumberTextView);
 
-            mStepIconBackground.setColorFilter(mSelectedColor, PorterDuff.Mode.SRC_IN);
+            updateCircleColor(mSelectedColor);
             mStepTitleTextView.setTextColor(mTitleColor);
             mStepSubtitleTextView.setTextColor(mSubtitleColor);
             super.changeToActiveNumber();
