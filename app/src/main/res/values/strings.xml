@@ -4,4 +4,56 @@
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label" translatable="false">First Fragment</string>
     <string name="second_fragment_label" translatable="false">Second Fragment</string>
+
+    <!-- ViewPager2 migration test scenarios -->
+    <string name="action_scenarios" translatable="false">Test scenarios</string>
+    <string name="scenarios_title" translatable="false">ViewPager2 migration scenarios</string>
+    <string name="scenario_tabs" translatable="false">Tabs: verify + blocking</string>
+    <string name="scenario_feedback" translatable="false">Feedback: interaction</string>
+    <string name="scenario_views" translatable="false">RecyclerView adapter</string>
+    <string name="scenario_transformer" translatable="false">Custom page transformer</string>
+    <string name="scenario_completed" translatable="false">Stepper completed</string>
+
+    <string name="selected_count" translatable="false">onSelected: %1$d</string>
+
+    <string name="tab_account" translatable="false">Account</string>
+    <string name="tab_blocking" translatable="false">Blocking</string>
+    <string name="tab_summary" translatable="false">Summary</string>
+
+    <string name="verify_title" translatable="false">Step 1: verifyStep()</string>
+    <string name="verify_body" translatable="false">Press Next with an empty field to see the verification error. The value is saved in the fragment state and must survive rotation and process death.</string>
+    <string name="verify_name_hint" translatable="false">Required name</string>
+    <string name="verify_name_required" translatable="false">A name is required</string>
+
+    <string name="blocking_title" translatable="false">Step 2: BlockingStep</string>
+    <string name="blocking_body" translatable="false">Next and Back are delayed by this step before navigating. Use the bottom navigation buttons.</string>
+    <string name="blocking_idle" translatable="false">Idle. Press Next or Back.</string>
+    <string name="blocking_next_wait" translatable="false">Blocking next for 1.5 s…</string>
+    <string name="blocking_next_done" translatable="false">Next released</string>
+    <string name="blocking_back_wait" translatable="false">Blocking back for 1 s…</string>
+    <string name="blocking_complete_wait" translatable="false">Blocking completion for 1.2 s…</string>
+
+    <string name="summary_title" translatable="false">Step 3: onSelected + completion</string>
+    <string name="summary_body" translatable="false">The onSelected counter below should increase every time this step becomes current. Complete is also blocked for 1.2 s to exercise BlockingStep#onCompleteClicked.</string>
+
+    <string name="feedback_title" translatable="false">Disabled content interaction</string>
+    <string name="feedback_body" translatable="false">Start the simulated operation. While it runs, the content must ignore taps and the bottom navigation must be disabled.</string>
+    <string name="feedback_idle" translatable="false">Idle</string>
+    <string name="feedback_tap_registered" translatable="false">Tap registered: %1$d</string>
+    <string name="feedback_run" translatable="false">Run 3 s async operation</string>
+    <string name="feedback_hint" translatable="false">Tap the counter button during progress: it should not change. After progress ends, it should respond again.</string>
+    <string name="feedback_running" translatable="false">Operation in progress…</string>
+    <string name="feedback_progress_message" translatable="false">Simulated network call</string>
+    <string name="feedback_finished" translatable="false">Operation finished. Taps accepted during progress: %1$d</string>
+    <string name="feedback_taps" translatable="false">Taps: %1$d</string>
+    <string name="feedback_finish_title" translatable="false">Feedback scenario finished</string>
+    <string name="feedback_finish_body" translatable="false">If the next button was disabled during progress and the counter did not change, disabled_content_interaction and disabled_bottom_navigation worked.</string>
+
+    <string name="view_step_title" translatable="false">View step %1$d</string>
+    <string name="view_step_body" translatable="false">This page is a plain View bound by a RecyclerView adapter. Tap counts live in the adapter model and must survive paging and rotation.</string>
+    <string name="view_step_taps" translatable="false">Taps: %1$d</string>
+    <string name="view_step_tap" translatable="false">Tap this View</string>
+
+    <string name="transformer_step_title" translatable="false">Transformer step %1$d</string>
+    <string name="transformer_step_body" translatable="false">Navigate with Next and Back to see the custom scale/alpha page transformer. It uses ViewPager2.PageTransformer.</string>
 </resources>

@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import com.example.sample.ScenarioActivity.Scenario
 import com.example.sample.adapters.SampleFragmentStepAdapter
 import com.example.sample.databinding.ActivityMainBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,9 +36,25 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
+            R.id.action_scenarios -> {
+                showScenarioPicker()
+                true
+            }
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showScenarioPicker() {
+        val scenarios = Scenario.entries.toTypedArray()
+        val labels = scenarios.map { getString(it.titleRes) }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.scenarios_title)
+            .setItems(labels) { _, which ->
+                val scenario = scenarios[which]
+                startActivity(ScenarioActivity.createIntent(this, scenario))
+            }
+            .show()
     }
 
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scenarioRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/scenarioToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        app:titleTextColor="?attr/colorOnSurface" />
+
+    <com.github.leodan11.stepper.StepperLayout
+        android:id="@+id/scenarioStepper"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:ms_activeStepColor="?attr/colorPrimary"
+        app:ms_backButtonColor="?attr/colorPrimary"
+        app:ms_bottomNavigationBackground="?attr/colorSurfaceContainer"
+        app:ms_completeButtonColor="?attr/colorPrimary"
+        app:ms_inactiveStepColor="?attr/colorOutline"
+        app:ms_nextButtonColor="?attr/colorPrimary"
+        app:ms_showErrorStateEnabled="true"
+        app:ms_showErrorStateOnBackEnabled="true"
+        app:ms_stepperType="tabs"
+        app:ms_tabNavigationEnabled="true"
+        app:ms_tabStepDividerWidth="16dp" />
+
+</LinearLayout>
