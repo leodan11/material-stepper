@@ -50,7 +50,9 @@ implementation 'com.github.leodan11:material-stepper:$tag'
 - The step container is now `ViewPager2`.
 - `StepAdapter#getPagerAdapter()` returns a `RecyclerView.Adapter`.
 - `AbstractStepAdapter` extends `RecyclerView.Adapter`; subclasses implement
-  `onCreateViewHolder` and `onBindViewHolder`.
+  `onCreateViewHolder` and `onBindViewHolder`. The root view of each View-based step
+  must fill the pager (`match_parent`), otherwise `ViewPager2` throws
+  `IllegalStateException("Pages must fill the whole ViewPager2")`.
 - `AbstractFragmentStepAdapter` extends `FragmentStateAdapter`. Steps beyond the
   offscreen page limit may be destroyed and recreated, so step fragments must save
   their state properly (fields are not retained indefinitely).
