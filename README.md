@@ -45,14 +45,23 @@ Then add the dependency:
 implementation 'com.github.leodan11:material-stepper:$tag'
 ```
 
-### Breaking changes in 2.0.0
+`$tag` is a placeholder for the latest release tag; the JitPack badge at the top of this
+README shows the current one. Replace it before syncing, for example with `2.0.0`.
+
+### Requirements
+
+- `minSdk 21`
+- AndroidX and a Material Components theme (`Theme.MaterialComponents.*` or `Theme.Material3.*`)
+- `compileSdk 36` and JDK 17 to build the project from source
+
+### Migrating from 1.x to 2.0.0
 
 - The step container is now `ViewPager2`.
-- `StepAdapter#getPagerAdapter()` returns a `RecyclerView.Adapter`.
+- `StepAdapter#getPagerAdapter()` returns a `RecyclerView.Adapter<?>`.
 - `AbstractStepAdapter` extends `RecyclerView.Adapter`; subclasses implement
-  `onCreateViewHolder` and `onBindViewHolder`. The root view of each View-based step
-  must fill the pager (`match_parent`), otherwise `ViewPager2` throws
-  `IllegalStateException("Pages must fill the whole ViewPager2")`.
+  `onCreateViewHolder` and `onBindViewHolder` in addition to `createStep`. The root view
+  of each View-based step must fill the pager (`match_parent`), otherwise `ViewPager2`
+  throws `IllegalStateException("Pages must fill the whole ViewPager2")`.
 - `AbstractFragmentStepAdapter` extends `FragmentStateAdapter`. Steps beyond the
   offscreen page limit may be destroyed and recreated, so step fragments must save
   their state properly (fields are not retained indefinitely).
@@ -64,6 +73,13 @@ implementation 'com.github.leodan11:material-stepper:$tag'
   their dark variants automatically. The previous colors are only used as a fallback
   when the theme does not define those attributes. See
   [Theming (Material 2 / Material 3)](#theming-material-2--material-3).
+- The step number and the done indicator are now drawn in black or white, picked from
+  the luminance of the step circle. The color defined in `ms_stepTabNumberStyle` and
+  `ms_stepTabDoneIndicatorStyle` is ignored; only their layout, size and typography
+  attributes are used.
+
+`StepperListener#onStepSelected` now has a default implementation, so overriding it is
+optional.
 
 ### Create layout in XML
 
@@ -77,7 +93,7 @@ implementation 'com.github.leodan11:material-stepper:$tag'
     app:ms_stepperType="progress_bar" />
 ```
 
-For a complete list of StepperLayout attributes see [StepperLayout attributes](#StepperLayout attributes).
+For a complete list of StepperLayout attributes see [StepperLayout attributes](#stepperlayout-attributes).
 
 ### Create step Fragment(s)
 Step fragments must extend [Fragment](https://developer.android.com/reference/androidx/fragment/app/Fragment.html)
@@ -115,18 +131,20 @@ public class StepFragmentSample extends Fragment implements Step {
 ```
 
 ### Extend AbstractFragmentStepAdapter
-AbstractFragmentStepAdapter extends [FragmentStateAdapter](https://developer.android.com/reference/androidx/viewpager2/adapter/FragmentStateAdapter)
-but instead of overriding the method `createFragment(int)` you must override the `createStep(int)` method.
 
-The `(Context, FragmentManager)` constructor requires the context to implement `LifecycleOwner`
-(for example, an `AppCompatActivity`). You can also use the `(FragmentActivity)` or `(Fragment)`
-constructors, which resolve the lifecycle automatically.
+`AbstractFragmentStepAdapter` extends [FragmentStateAdapter](https://developer.android.com/reference/androidx/viewpager2/adapter/FragmentStateAdapter),
+but instead of overriding `createFragment(int)` you must override `createStep(int)`.
+
+Prefer the `(FragmentActivity)` or `(Fragment)` constructors: they resolve the
+`FragmentManager` and the lifecycle automatically. The `(Context, FragmentManager)`
+constructor is still available for advanced cases, but the context must implement
+`LifecycleOwner` or wrap one.
 
 ```java
 public static class MyStepperAdapter extends AbstractFragmentStepAdapter {
 
-    public MyStepperAdapter(Context context, FragmentManager fm) {
-        super(context, fm);
+    public MyStepperAdapter(@NonNull FragmentActivity activity) {
+        super(activity);
     }
 
     @Override
@@ -146,14 +164,62 @@ public static class MyStepperAdapter extends AbstractFragmentStepAdapter {
     @NonNull
     @Override
     public StepViewModel getViewModel(@IntRange(from = 0) int position) {
-        //Override this method to set Step title for the Tabs, not necessary for other stepper types
+        // `context` is still a protected field of AbstractFragmentStepAdapter
         return new StepViewModel.Builder(context)
-                .setTitle(R.string.tab_title) //can be a CharSequence instead
+                .setTitle(R.string.tab_title) // can be a CharSequence instead
                 .create();
     }
 }
-
 ```
+
+### Extend AbstractStepAdapter (View-based steps)
+
+For plain Views, `AbstractStepAdapter` now extends `RecyclerView.Adapter`. In addition
+to `createStep(int)`, implement `onCreateViewHolder` and `onBindViewHolder`; the root
+view of each step must fill the pager.
+
+```java
+public static class MyViewStepAdapter extends AbstractStepAdapter {
+
+    private final List<MyStep> steps;
+
+    public MyViewStepAdapter(@NonNull Context context, @NonNull List<MyStep> steps) {
+        super(context);
+        this.steps = steps;
+    }
+
+    @Override
+    public int getCount() {
+        return steps.size();
+    }
+
+    @Override
+    public Step createStep(int position) {
+        return steps.get(position);
+    }
+
+    @Override
+    public Step findStep(int position) {
+        return steps.get(position);
+    }
+
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.step, parent, false);
+        return new RecyclerView.ViewHolder(view) { };
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        // Bind `steps.get(position)` into holder.itemView
+    }
+}
+```
+
+`MyStep` is your model implementing `Step`; the step views are created and recycled by
+the adapter, so keep any state outside the view holder.
 
 ### Set adapter in Activity
 
@@ -167,7 +233,7 @@ public class StepperActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         mStepperLayout = (StepperLayout) findViewById(R.id.stepperLayout);
-        mStepperLayout.setAdapter(new MyStepperAdapter(this, getSupportFragmentManager()));
+        mStepperLayout.setAdapter(new MyStepperAdapter(this));
     }
 }
 ```
@@ -231,6 +297,7 @@ For advanced styling please see [StepperLayout style attributes](#stepperlayout-
 | *ms_errorColor*                 | color or reference                                                  | Error color in Tabs stepper |
 | *ms_showErrorStateEnabled*      | boolean                                                             | Flag indicating whether to show the error state. Only applicable for 'tabs' type. False by default. |
 | *ms_showErrorStateOnBackEnabled*| boolean                                                             | Flag indicating whether to keep showing the error state when user moves back. Only applicable for 'tabs' type. False by default. |
+| *ms_showErrorMessageEnabled*    | boolean                                                             | Flag indicating whether to show the error message below the tab title. Only applicable for 'tabs' type. False by default. |
 | *ms_tabNavigationEnabled*       | boolean                                                             | Flag indicating whether step navigation is possible by clicking on the tabs directly. Only applicable for 'tabs' type. True by default. |
 | *ms_stepperFeedbackType*        | flag(s): `none` or `tabs`, `content_progress`, `content_fade`, `content_overlay`, `disabled_bottom_navigation` & `disabled_content_interaction` | Type(s) of stepper feedback. Can be a combination of `tabs`, `content_progress`, `content_fade`, `content_overlay`, `disabled_bottom_navigation` & `disabled_content_interaction`. Default is `none`.|
 | *ms_stepperFeedback_contentFadeAlpha* | float                                                         | An alpha value from 0 to 1.0f to be used for the faded out view if `content_fade` stepper feedback type is set. 0.5f by default. |
@@ -314,5 +381,9 @@ app theme, so `?attr/...` references keep working:
 > Avoid Material 3 only attributes such as `?attr/colorSurfaceContainer` or
 > `?attr/colorOutline`: they are undefined in Material 2 themes and the affected style
 > item is silently ignored. Use `?attr/colorSurface` and `?attr/colorOnSurface` instead.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 
